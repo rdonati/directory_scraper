@@ -1,6 +1,7 @@
-Scraper for lafayette directory (includes active students, and faculty)
+Scraper for lafayette directory
+Stores in local sqlite database
 
 Scrapes:
-    Name (First, Last)
-    Year (If student)
+    Name (first, second (if applicable), last) 
+    Year 
     Email

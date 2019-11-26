@@ -4,8 +4,6 @@ import os
 import databaseLayer as db
 
 class Student:
-    #Constructor for student
-    #Has firstName, secondName (if applicable), lastName, classYear, and email
     def __init__(self, name = '', classYear = '', email = ''):
         self.assignNames(name)
         self.classYear = classYear
@@ -33,17 +31,12 @@ class Student:
         s += ('Email: ' + self.email + "\n\n")
         return s
 
-
-
-
-
-
 def scrape(conn):
     studentCount = 0
     doneScraping = False
     students = []
 
-    while(studentCount < 10):
+    while(not doneScraping):
         url = 'https://search.lafayette.edu/?query=*&type=directory&start=' + str(studentCount) + "&engine=directory"
         site = requests.get(url)
         soup = BeautifulSoup(site.text, 'html.parser')
@@ -64,27 +57,52 @@ def scrape(conn):
             
             classYear = result.find('div', {'class': 'field_department'}).text.strip()
             email = result.find('div', {'class': 'field_email'}).text.strip()
-            names = assignNames(name)
+            names = cleanNames(name)
 
-            db.insertStudent(conn, names[0], names[1], names[2], int(classYear[-4:]), email)
+            db.insertStudent(conn, names[0], names[1], names[2], cleanClassYear(classYear), email)
 
         studentCount += 10
         print(studentCount)
 
     return students
 
-#Returns list of [firstName, secondName, lastName]
-def assignNames(name):
-    names = name.split(' ')
-    while(len(names) != 3):
-        names.insert(1, '')
-    return names
+def cleanClassYear(text):
+    text = text[-4:]
+    if(isFloat(text)):
+        return text
+    else:
+        return "\"NULL\""
+
+#Returns list of [firstName, secondName(s), lastName]
+def cleanNames(nameString):
+    namesInput = nameString.split(' ')
+    namesOut = []
+
+    #First name
+    namesOut.append(namesInput[0])
+
+    #Middle name(s).. any extra names are assumed to be middle names
+    if len(namesInput) > 2:
+        namesOut.append(' '.join(namesInput[1:-1]))
+    else:
+        namesOut.append("NULL")
+
+    #Last name(s)
+    namesOut.append(namesInput[len(namesInput) - 1])
+    return namesOut
+
+def isFloat(string):
+    try:
+        string = float(string)
+        return True
+    except ValueError:
+        return False
 
 def main():
     conn = db.create_connection('directory.db')
     db.createProject(conn)
+    db.clearTable(conn)
     scrape(conn)
-    db.selectAll(conn)
     conn.close()
 
 if __name__ == '__main__':

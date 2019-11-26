@@ -13,21 +13,30 @@ def selectAll(conn):
         s = ''
         s += ('ID: ' + str(student[0]) + '\n')
         s += ('First name: ' + student[1] + '\n')
-        s += ('Second name: ' + student[2] + '\n')
+        s += ('Second name: ' + str(student[2]) + '\n')
         s += ('Last name: ' + student[3] + '\n')
         s += ('Year: ' + str(student[4]) + '\n')
         s += ('Email: ' + student[5] + "\n\n")
         print(s)
-    print(cur.lastrowid)
 
 def insertStudent(conn, firstName, secondName, lastName, classYear, email):
+
     sql = """
     INSERT INTO students(firstName, secondName, lastName, classYear, email)
-    VALUES("%s", "%s", "%s", %d, "%s");
+    VALUES("%s", "%s", "%s", %s, "%s");
     """ % (firstName, secondName, lastName, classYear, email)
     cur = conn.cursor()
     cur.execute(sql)
-    print(cur.lastrowid)
+    conn.commit()
+
+def clearTable(conn):
+    sql = """
+        DELETE FROM students;
+        """
+    cur = conn.cursor()
+    cur.execute(sql)
+    conn.commit()
+    print("Table \"students\" has been cleared")
 
 def createProject(conn):
     sql = """
@@ -42,7 +51,7 @@ def createProject(conn):
         """
     cur = conn.cursor()
     cur.execute(sql)
-    print(cur.lastrowid)
+    conn.commit()
 
 def create_connection(db_file):
     """ create a database connection to a SQLite database """

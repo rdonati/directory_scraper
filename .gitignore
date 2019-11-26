@@ -1,0 +1,5 @@
+#Excludes any databases
+*.db
+
+#Excludes any test files
+test.*
